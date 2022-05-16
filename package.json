@@ -15,7 +15,8 @@
   "scripts": {
     "build": "rm -rf dist && npm run build:lib && npm run build:types",
     "build:lib": "vite build",
-    "build:types": "tsc -p . --emitDeclarationOnly"
+    "build:types": "tsc -p . --emitDeclarationOnly",
+    "repl": "node -r ./replenv"
   },
   "author": "Lily Scott <me@suchipi.com>",
   "repository": "suchipi/jsxdom",
@@ -29,8 +30,8 @@
   "publishConfig": {
     "access": "public"
   },
-  "dependencies": {},
   "devDependencies": {
+    "jsdom": "^19.0.0",
     "typescript": "^4.6.4",
     "vite": "^2.9.8"
   }

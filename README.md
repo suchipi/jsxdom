@@ -52,10 +52,23 @@ console.log(myDiv); // HTMLDivElement
 console.log(upButton); // { current: HTMLButtonElement }
 ```
 
+It also supports user components:
+
+```tsx
+function MyComponent(props) {
+  return <div {...props} />;
+}
+
+const myDiv = <MyComponent id="hi" />;
+
+console.log(myDiv); // HTMLDivElement
+```
+
 Notes:
 
 - `jsx` must be in-scope to use JSX.
 - `ref` creates React-style ref objects, shaped like `{ current: any }`.
+- There's no re-rendering logic here. You can use this to get an initial element tree, but modifying it after that point is up to you.
 - Use eg `onclick` instead of `onClick`, `className` instead of `class`.
   - Because it's using the HTMLElement property names.
 - The result of every JSX expression is an HTMLElement (or DocumentFragment if you use JSX fragment syntax).

@@ -44,25 +44,43 @@ interface JSXFactory {
     type: TagName,
     ...children: Array<Child>
   ): HTMLElementTagNameMap[TagName];
+
+  <Result extends HTMLElement>(type: (props: {}) => Result): Result;
+
+  <Result extends HTMLElement, Props extends {}>(
+    type: (props: Props) => Result,
+    props: Props
+  ): Result;
+
+  <Result extends HTMLElement, Props extends {}>(
+    type: (props: Props) => Result,
+    props: Props,
+    ...children: Array<Child>
+  ): Result;
+
+  <Result extends HTMLElement>(
+    type: (props: {}) => Result,
+    ...children: Array<Child>
+  ): Result;
 }
 
 export const jsx: JSXFactory = (type: any, ...args: Array<any>) => {
-  let el: HTMLElement | DocumentFragment;
+  let el: HTMLElement | DocumentFragment | null = null;
   if (type === DocumentFragment) {
     el = document.createDocumentFragment();
-  } else {
+  } else if (typeof type === "string") {
     el = document.createElement(type);
   }
 
-  let attrs: null | { [key: string | number | symbol]: any } = null;
+  let rawProps: null | { [key: string | number | symbol]: any } = null;
   let children: null | Array<Child> = null;
 
   if (typeof args[0] === "object" && args[0] != null) {
-    // could be attrs or first child
+    // could be props or first child
     if (args[0] instanceof Node) {
       children = args;
     } else {
-      attrs = args[0];
+      rawProps = args[0];
       children = args.slice(1);
     }
   } else {
@@ -70,32 +88,41 @@ export const jsx: JSXFactory = (type: any, ...args: Array<any>) => {
     children = args;
   }
 
-  const { style, ref, ...otherAttrs } = attrs || {};
+  children.flat(Infinity);
 
-  if (style != null) {
-    if (el instanceof DocumentFragment) {
-      throw new Error("Fragments can't have a style");
-    } else {
-      Object.assign(el.style, style);
+  const props = rawProps || {};
+
+  if (el != null) {
+    // DOM element
+    const { style, ref, ...otherProps } = props;
+
+    if (style != null) {
+      if (!(el instanceof DocumentFragment)) {
+        Object.assign(el.style, style);
+      }
     }
-  }
 
-  if (ref != null) {
-    ref.current = el;
-  }
-
-  Object.assign(el, otherAttrs);
-
-  for (const child of children) {
-    if (child == null) continue;
-
-    if (typeof child === "object") {
-      el.appendChild(child);
-    } else {
-      const textNode = document.createTextNode(String(child));
-      el.appendChild(textNode);
+    if (ref != null) {
+      ref.current = el;
     }
-  }
 
-  return el;
+    Object.assign(el, otherProps);
+
+    for (const child of children) {
+      if (child == null) continue;
+
+      if (typeof child === "object") {
+        el.appendChild(child);
+      } else {
+        const textNode = document.createTextNode(String(child));
+        el.appendChild(textNode);
+      }
+    }
+
+    return el;
+  } else {
+    // user component
+    props.children = children;
+    return type(props);
+  }
 };
