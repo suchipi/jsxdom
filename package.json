@@ -1,0 +1,37 @@
+{
+  "name": "@suchipi/jsxdom",
+  "version": "0.1.0",
+  "description": "createElement-style JSX factory that creates HTML elements directly",
+  "license": "MIT",
+  "main": "./dist/jsxdom.umd.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "default": "./dist/jsxdom.es.js",
+      "import": "./dist/jsxdom.es.js",
+      "require": "./dist/jsxdom.cjs.js"
+    }
+  },
+  "scripts": {
+    "build": "rm -rf dist && npm run build:lib && npm run build:types",
+    "build:lib": "vite build",
+    "build:types": "tsc -p . --emitDeclarationOnly"
+  },
+  "author": "Lily Scott <me@suchipi.com>",
+  "repository": "suchipi/jsxdom",
+  "keywords": [
+    "jsx",
+    "web",
+    "dom",
+    "document",
+    "createElement"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^4.6.4",
+    "vite": "^2.9.8"
+  }
+}
