@@ -1,49 +1,94 @@
-export type Ref<T = any> = { current: T };
+const REF = Symbol("REF");
 
-interface RefFactory {
+export type FunctionRef<T = any> = (value: T | null) => void;
+export type ObjectRef<T = any> = { current: T; [REF]: true };
+export type Ref<T = any> = FunctionRef<T> | ObjectRef<T>;
+
+interface ObjectRefFactory {
   <T = any>(): Ref<T | null>;
   <T>(initialValue: T): Ref<T>;
 }
 
-export const ref: RefFactory = (...args: Array<any>) => {
-  return { current: args.length > 0 ? args[0] : null };
+export const ref: ObjectRefFactory = (...args: Array<any>) => {
+  return { [REF]: true as const, current: args.length > 0 ? args[0] : null };
 };
 
-export type Attrs<TagName extends keyof HTMLElementTagNameMap> = Partial<
+export type TagName = keyof HTMLElementTagNameMap;
+
+export type Attrs<SomeTagName extends TagName> = Partial<
   {
-    [Key in keyof HTMLElementTagNameMap[TagName]]: Key extends "style"
+    [Key in keyof HTMLElementTagNameMap[SomeTagName]]: Key extends "style"
       ? Partial<CSSStyleDeclaration>
-      : HTMLElementTagNameMap[TagName][Key];
+      : Key extends "namespaceURI"
+      ? string
+      : HTMLElementTagNameMap[SomeTagName][Key];
   } & {
-    ref: Ref<HTMLElementTagNameMap[TagName]>;
+    ref: Ref<HTMLElementTagNameMap[SomeTagName]>;
   }
 >;
 
 export type Child = HTMLElement | string | number | null;
 
+export const defaultNodeFactory = (
+  type: string | typeof DocumentFragment,
+  props: { [key: string]: any }
+): Node => {
+  if (typeof type !== "string") {
+    return document.createDocumentFragment();
+  }
+
+  const { style, ref, namespaceURI, ...otherProps } = props;
+
+  let node: Node;
+  if (namespaceURI) {
+    node = document.createElementNS(namespaceURI, type);
+  } else {
+    node = document.createElement(type);
+  }
+
+  if (style != null) {
+    Object.assign((node as any).style, style);
+  }
+
+  if (ref != null) {
+    if (typeof ref === "function") {
+      ref(node);
+    } else {
+      ref.current = node;
+    }
+  }
+
+  Object.assign(node, otherProps);
+
+  return node;
+};
+
+let nodeFactory = defaultNodeFactory;
+
+export const setNodeFactory = (creator: typeof defaultNodeFactory): void => {
+  nodeFactory = creator;
+};
+
 interface JSXFactory {
-  <TagName extends keyof HTMLElementTagNameMap>(
-    type: TagName
-  ): HTMLElementTagNameMap[TagName];
+  <SomeTagName extends TagName>(
+    type: SomeTagName
+  ): HTMLElementTagNameMap[SomeTagName];
 
-  <
-    TagName extends keyof HTMLElementTagNameMap,
-    InputAttrs extends Attrs<TagName>
-  >(
-    type: TagName,
+  <SomeTagName extends TagName, InputAttrs extends Attrs<SomeTagName>>(
+    type: SomeTagName,
     attrs: InputAttrs
-  ): HTMLElementTagNameMap[TagName];
+  ): HTMLElementTagNameMap[SomeTagName];
 
-  <TagName extends keyof HTMLElementTagNameMap>(
-    type: TagName,
-    attrs: Attrs<TagName>,
+  <SomeTagName extends TagName>(
+    type: SomeTagName,
+    attrs: Attrs<SomeTagName>,
     ...children: Array<Child>
-  ): HTMLElementTagNameMap[TagName];
+  ): HTMLElementTagNameMap[SomeTagName];
 
-  <TagName extends keyof HTMLElementTagNameMap>(
-    type: TagName,
+  <SomeTagName extends TagName>(
+    type: SomeTagName,
     ...children: Array<Child>
-  ): HTMLElementTagNameMap[TagName];
+  ): HTMLElementTagNameMap[SomeTagName];
 
   <Result extends HTMLElement>(type: (props: {}) => Result): Result;
 
@@ -65,13 +110,6 @@ interface JSXFactory {
 }
 
 export const jsx: JSXFactory = (type: any, ...args: Array<any>) => {
-  let el: HTMLElement | DocumentFragment | null = null;
-  if (type === DocumentFragment) {
-    el = document.createDocumentFragment();
-  } else if (typeof type === "string") {
-    el = document.createElement(type);
-  }
-
   let rawProps: null | { [key: string | number | symbol]: any } = null;
   let children: null | Array<Child> = null;
 
@@ -92,37 +130,26 @@ export const jsx: JSXFactory = (type: any, ...args: Array<any>) => {
 
   const props = rawProps || {};
 
-  if (el != null) {
-    // DOM element
-    const { style, ref, ...otherProps } = props;
+  props.children = children;
 
-    if (style != null) {
-      if (!(el instanceof DocumentFragment)) {
-        Object.assign(el.style, style);
-      }
-    }
-
-    if (ref != null) {
-      ref.current = el;
-    }
-
-    Object.assign(el, otherProps);
+  if (type === DocumentFragment || typeof type === "string") {
+    // dom node
+    const node = nodeFactory(type, props);
 
     for (const child of children) {
       if (child == null) continue;
 
       if (typeof child === "object") {
-        el.appendChild(child);
+        node.appendChild(child);
       } else {
         const textNode = document.createTextNode(String(child));
-        el.appendChild(textNode);
+        node.appendChild(textNode);
       }
     }
 
-    return el;
+    return node;
   } else {
-    // user component
-    props.children = children;
+    // user component function
     return type(props);
   }
 };

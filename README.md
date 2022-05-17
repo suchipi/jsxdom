@@ -73,6 +73,9 @@ Notes:
   - Because it's using the HTMLElement property names.
 - The result of every JSX expression is an HTMLElement (or DocumentFragment if you use JSX fragment syntax).
 - To attach the resulting HTMLElement(s) to the DOM, use `document.body.appendChild` or etc.
-- Every prop passed to a JSX element will be assigned to the HTMLElement directly, except for `ref` and `style`:
-  - When a `ref` prop is present, the HTMLElement will be written to the ref's `current` property.
+- Every prop passed to a JSX element will be assigned to the HTMLElement directly, except for `ref`, `style`, and `namespaceURI`:
+  - When a `ref` prop is present, the HTMLElement will be written to the ref's `current` property (or, if the ref is a function, it will be called with the HTMLElement).
   - When a `style` prop is present, its properties will be assigned onto the HTMLElement's `style` property.
+  - When a `namespaceURI` prop is present, it will be passed into `document.createElementNS`. This can be used to create eg. svg elements.
+- You can use the function `setNodeFactory` exported from this library to customize how DOM nodes are created and how props are written to them.
+  - It defaults to the function `defaultNodeFactory`, also exported from this library.
