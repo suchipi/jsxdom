@@ -5,8 +5,8 @@ export type ObjectRef<T = any> = { current: T; [REF]: true };
 export type Ref<T = any> = FunctionRef<T> | ObjectRef<T>;
 
 interface ObjectRefFactory {
-  <T = any>(): Ref<T | null>;
-  <T>(initialValue: T): Ref<T>;
+  <T = any>(): ObjectRef<T | null>;
+  <T>(initialValue: T): ObjectRef<T>;
 }
 
 export const ref: ObjectRefFactory = (...args: Array<any>) => {
