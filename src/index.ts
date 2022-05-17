@@ -37,7 +37,16 @@ export const defaultNodeFactory = (
     return document.createDocumentFragment();
   }
 
-  const { style, ref, namespaceURI, children, ...otherProps } = props;
+  const {
+    // props that are handled specially and
+    // therefore shouldn't be assigned onto the node
+    style,
+    ref,
+    namespaceURI,
+    children,
+    tagName,
+    ...otherProps
+  } = props;
 
   let node: Node;
   if (namespaceURI) {
