@@ -1,6 +1,6 @@
 {
   "name": "@suchipi/jsxdom",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "createElement-style JSX factory that creates HTML elements directly",
   "license": "MIT",
   "main": "./dist/jsxdom.umd.js",
