@@ -37,7 +37,7 @@ export const defaultNodeFactory = (
     return document.createDocumentFragment();
   }
 
-  const { style, ref, namespaceURI, ...otherProps } = props;
+  const { style, ref, namespaceURI, children, ...otherProps } = props;
 
   let node: Node;
   if (namespaceURI) {
