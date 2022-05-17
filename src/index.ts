@@ -135,7 +135,7 @@ export const jsx: JSXFactory = (type: any, ...args: Array<any>) => {
     children = args;
   }
 
-  children.flat(Infinity);
+  children = children.flat(Infinity);
 
   const props = rawProps || {};
 
