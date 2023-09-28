@@ -162,3 +162,7 @@ export const jsx: JSXFactory = (type: any, ...args: Array<any>) => {
     return type(props);
   }
 };
+
+// for compat when using via aliasing to "react" package instead of jsx fragment config
+export const createElement = jsx;
+export const Fragment = DocumentFragment;
