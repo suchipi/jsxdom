@@ -77,5 +77,3 @@ Notes:
   - When a `ref` prop is present, the HTMLElement will be written to the ref's `current` property (or, if the ref is a function, it will be called with the HTMLElement).
   - When a `style` prop is present, its properties will be assigned onto the HTMLElement's `style` property.
   - When a `namespaceURI` prop is present, it will be passed into `document.createElementNS`. This can be used to create eg. svg elements.
-- You can use the function `setNodeFactory` exported from this library to customize how DOM nodes are created and how props are written to them.
-  - It defaults to the function `defaultNodeFactory`, also exported from this library.

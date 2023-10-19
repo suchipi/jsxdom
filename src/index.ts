@@ -1,7 +1,5 @@
-const REF = Symbol("REF");
-
 export type FunctionRef<T = any> = (value: T | null) => void;
-export type ObjectRef<T = any> = { current: T; [REF]: true };
+export type ObjectRef<T = any> = { current: T };
 export type Ref<T = any> = FunctionRef<T> | ObjectRef<T>;
 
 interface ObjectRefFactory {
@@ -10,7 +8,7 @@ interface ObjectRefFactory {
 }
 
 export const ref: ObjectRefFactory = (...args: Array<any>) => {
-  return { [REF]: true as const, current: args.length > 0 ? args[0] : null };
+  return { current: args.length > 0 ? args[0] : null };
 };
 
 export type TagName = keyof HTMLElementTagNameMap;
@@ -29,7 +27,7 @@ export type Attrs<SomeTagName extends TagName> = Partial<
 
 export type Child = HTMLElement | string | number | null;
 
-export const defaultNodeFactory = (
+export const nodeFactory = (
   type: string | typeof DocumentFragment,
   props: { [key: string]: any }
 ): Node => {
@@ -37,45 +35,41 @@ export const defaultNodeFactory = (
     return document.createDocumentFragment();
   }
 
-  const {
+  // We don't use object spread syntax here so that
+  // the generated code is more readable.
+  const otherProps = Object.assign({}, props);
+  {
     // props that are handled specially and
     // therefore shouldn't be assigned onto the node
-    style,
-    ref,
-    namespaceURI,
-    children,
-    tagName,
-    ...otherProps
-  } = props;
+    delete otherProps.style;
+    delete otherProps.ref;
+    delete otherProps.namespaceURIref;
+    delete otherProps.childrenref;
+    delete otherProps.tagNameref;
+  }
 
   let node: Node;
-  if (namespaceURI) {
-    node = document.createElementNS(namespaceURI, type);
+  if (props.namespaceURI) {
+    node = document.createElementNS(props.namespaceURI, type);
   } else {
     node = document.createElement(type);
   }
 
-  if (style != null) {
-    Object.assign((node as any).style, style);
+  if (props.style != null) {
+    Object.assign((node as any).style, props.style);
   }
 
-  if (ref != null) {
-    if (typeof ref === "function") {
-      ref(node);
+  if (props.ref != null) {
+    if (typeof props.ref === "function") {
+      props.ref.call(null, node);
     } else {
-      ref.current = node;
+      props.ref.current = node;
     }
   }
 
   Object.assign(node, otherProps);
 
   return node;
-};
-
-let nodeFactory = defaultNodeFactory;
-
-export const setNodeFactory = (creator: typeof defaultNodeFactory): void => {
-  nodeFactory = creator;
 };
 
 interface JSXFactory {
