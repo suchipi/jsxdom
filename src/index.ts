@@ -43,9 +43,9 @@ export const nodeFactory = (
     // therefore shouldn't be assigned onto the node
     delete otherProps.style;
     delete otherProps.ref;
-    delete otherProps.namespaceURIref;
-    delete otherProps.childrenref;
-    delete otherProps.tagNameref;
+    delete otherProps.namespaceURI;
+    delete otherProps.children;
+    delete otherProps.tagName;
   }
 
   let node: Node;
